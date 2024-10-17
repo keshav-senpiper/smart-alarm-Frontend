@@ -59,7 +59,7 @@ const SmartMeterGraph = () => {
         param: selectedParams.length > 0 ? selectedParams.map((param) => param.value) : [],
       };
   
-      const response = await axios.post('http://localhost:3010/api/smart-meter/readings', payload);
+      const response = await axios.post('http://13.201.120.140:3010/api/smart-meter/readings', payload);
       const data = response.data;
   
       // Prepare chart data based on the response

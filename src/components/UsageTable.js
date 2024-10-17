@@ -15,7 +15,7 @@ const UsageTable = () => {
     }
     try {
       // Use POST request to call the API with device_id in the request body
-      const response = await axios.post('http://localhost:3010/api/all-power-source-usage', {
+      const response = await axios.post('http://13.201.120.140:3010/api/all-power-source-usage', {
         device_id: deviceID,
       });
 
@@ -34,6 +34,13 @@ const UsageTable = () => {
       setError('Failed to fetch data. Please try again.');
     }
   };
+    // Function to convert seconds to HH:MM:SS format
+    const formatTime = (seconds) => {
+      const hrs = Math.floor(seconds / 3600);
+      const mins = Math.floor((seconds % 3600) / 60);
+      const secs = Math.floor(seconds % 60);
+      return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+    };
 
   return (
     <div className="usage-table-container">
@@ -57,7 +64,7 @@ const UsageTable = () => {
               <th>Power Source</th>
               <th>Start Time</th>
               <th>End Time</th>
-              <th>Usage Time (Seconds)</th>
+              <th>Usage Time</th>
             </tr>
           </thead>
           <tbody>
@@ -70,7 +77,7 @@ const UsageTable = () => {
                 <td>{usage.end_time ? new Date(usage.end_time).toLocaleString() : 'Ongoing'}</td>
                 <td>
                   {typeof usage.usage_time === 'number'
-                    ? usage.usage_time.toFixed(2)
+                    ? formatTime(usage.usage_time)
                     : 'N/A'}
                 </td>
               </tr>
