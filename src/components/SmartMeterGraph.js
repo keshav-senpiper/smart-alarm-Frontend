@@ -14,9 +14,10 @@ import axios from 'axios';
 import DatePicker from 'react-datepicker';
 import 'react-datepicker/dist/react-datepicker.css';
 import Select from 'react-select';
+import zoomPlugin from 'chartjs-plugin-zoom';
 
 // Register required Chart.js components
-ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Title, Tooltip, Legend);
+ChartJS.register(zoomPlugin,CategoryScale, LinearScale, LineElement, PointElement, Title, Tooltip, Legend);
 
 const SmartMeterGraph = () => {
   const [deviceID, setDeviceID] = useState('');
@@ -269,6 +270,21 @@ const SmartMeterGraph = () => {
                 },
                 legend: {
                   position: 'top',
+                },
+                zoom: {
+                  pan: {
+                    enabled: true,
+                    mode: 'x',  // Allow panning in the x direction
+                  },
+                  zoom: {
+                    wheel: {
+                      enabled: true, // Enable zooming with the mouse wheel
+                    },
+                    pinch: {
+                      enabled: true, // Enable zooming with pinch gestures
+                    },
+                    mode: 'x', // Enable zooming in the x direction
+                  },
                 },
               },
               scales: {
