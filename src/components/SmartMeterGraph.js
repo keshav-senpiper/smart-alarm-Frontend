@@ -41,6 +41,51 @@ const SmartMeterGraph = () => {
     { value: 'others', label: 'Others' },
   ];
 
+   // Function to fill missing data points
+   const fillMissingDataPoints = (data) => {
+    const filledData = [];
+    const timeGapThreshold = 60 * 1000; // 60 seconds in milliseconds
+    for (let i = 0; i < data.length - 1; i++) {
+      const currentReading = data[i];
+      const nextReading = data[i + 1];
+      filledData.push(currentReading); // Always add current reading
+
+      const currentTimestamp = new Date(currentReading.timestamp).getTime();
+      const nextTimestamp = new Date(nextReading.timestamp).getTime();
+      const timeDifference = nextTimestamp - currentTimestamp;
+
+      if (timeDifference > timeGapThreshold) {
+        // Calculate how many missing intervals
+        const missingIntervals = Math.floor(timeDifference / timeGapThreshold);
+
+        for (let j = 1; j <= missingIntervals; j++) {
+          const interpolatedTimestamp = new Date(currentTimestamp + j * timeGapThreshold);
+          filledData.push({
+            timestamp: interpolatedTimestamp.toISOString(),
+            phase1_kw: 0,
+            phase1_current: 0,
+            phase1_voltage: 0,
+            phase1_pf: 0,
+            phase2_kw: 0,
+            phase2_current: 0,
+            phase2_voltage: 0,
+            phase2_pf: 0,
+            phase3_kw: 0,
+            phase3_current: 0,
+            phase3_voltage: 0,
+            phase3_pf: 0,
+            others_f: 0,
+            others_apf: 0,
+            others_tkw: 0,
+            avg_current: 0,
+            avg_voltage: 0,
+          });
+        }
+      }
+    }
+    filledData.push(data[data.length - 1]); // Add the last reading
+    return filledData;
+  };
 
   const fetchReadings = async () => {
     try {
@@ -60,8 +105,10 @@ const SmartMeterGraph = () => {
       };
   
       const response = await axios.post('http://13.201.120.140:3010/api/smart-meter/readings', payload);
-      const data = response.data;
-  
+      
+      let data = response.data;
+      data = fillMissingDataPoints(data);
+
       // Prepare chart data based on the response
       const labels = data.map((reading) => new Date(reading.timestamp).toLocaleString());
       const datasets = [];
@@ -88,7 +135,7 @@ const SmartMeterGraph = () => {
           ['phase1', 'phase2', 'phase3'].forEach((phase, phaseIndex) => {
             const key = `${phase}_${param.value}`;
             if (data.some((reading) => reading[key] !== undefined)) {
-              const paramData = data.map((reading) => reading[key] || null);
+              const paramData = data.map((reading) => reading[key] !== undefined ? reading[key] : 0);
               datasets.push({
                 label: `${phase.toUpperCase()} ${param.label}`,
                 data: paramData,
@@ -104,7 +151,7 @@ const SmartMeterGraph = () => {
         const othersKeys = ['others_f', 'others_apf', 'others_tkw'];
         othersKeys.forEach((key, keyIndex) => {
           if (data.some((reading) => reading[key] !== undefined)) {
-            const paramData = data.map((reading) => reading[key] || null);
+            const paramData = data.map((reading) => reading[key] !== undefined ? reading[key] : 0);
             datasets.push({
               label: `Others ${key.replace('others_', '').toUpperCase()}`,
               data: paramData,
@@ -122,7 +169,7 @@ const SmartMeterGraph = () => {
             const othersKeys = ['others_f', 'others_apf', 'others_tkw'];
             othersKeys.forEach((key, keyIndex) => {
               if (data.some((reading) => reading[key] !== undefined)) {
-                const paramData = data.map((reading) => reading[key] || null);
+                const paramData = data.map((reading) => reading[key] !== undefined ? reading[key] : 0);
                 datasets.push({
                   label: `Others ${key.replace('others_', '').toUpperCase()}`,
                   data: paramData,
@@ -136,7 +183,7 @@ const SmartMeterGraph = () => {
             selectedParams.forEach((param, paramIndex) => {
               const key = `${phase.value}_${param.value}`;
               if (data.some((reading) => reading[key] !== undefined)) {
-                const paramData = data.map((reading) => reading[key] || null);
+                const paramData = data.map((reading) => reading[key] !== undefined ? reading[key] : 0);
                 datasets.push({
                   label: `${phase.label} ${param.label}`,
                   data: paramData,
